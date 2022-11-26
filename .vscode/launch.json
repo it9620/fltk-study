@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/build/CppTemplate",
+            "program": "${workspaceFolder}/build/src/FLTKtest",
             "args": [],
             "cwd": "${workspaceFolder}"
         }

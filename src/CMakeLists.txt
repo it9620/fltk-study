@@ -2,7 +2,7 @@
 # MAIN PART
 ###################################
 cmake_minimum_required(VERSION 3.20)
-project(CppTemplate VERSION 0.1.1)
+project(FLTKtest VERSION 0.1.1)
 message(STATUS "OS: ${CMAKE_SYSTEM_NAME}")
 
 # set the cpp and c standard for compilator:
@@ -11,20 +11,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Threads REQUIRED)
 
-
-
-#set(TRANSPORTCAT_FILES main.cpp)
-
+#set(SRC_FILES main.cpp)
 # COMPILE EXECUTABLE FILE
 add_executable(${PROJECT_NAME}
         main.cpp
         )
 #
-#
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-#
-
+target_include_directories(${PROJECT_NAME}  PUBLIC ${FLTK_INCLUDE_DIRS})
 
 target_compile_options(${PROJECT_NAME} PRIVATE
         -stdlib=libc++ # default library for MacOS
@@ -33,7 +27,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE
         -Werror
         )
 
-#set(CMAKE_BUILD_TYPE "Debug")
 if (CMAKE_BUILD_TYPE MATCHES Debug)
 
         #https://www.stackfinder.ru/questions/67512498/how-to-set-asan-options-environment-variable-in-cmake
@@ -46,11 +39,9 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
                 -g
                 -fsanitize=address
                 -fsanitize=undefined
-                #-fsanitize=leak
                 -O0
                 -fno-omit-frame-pointer
                 -fno-optimize-sibling-calls
-                #-D_LIBCPP_DEBUG=1 # debuging macros turn on spec regime for libc++
                 -D_GLIBCXX_DEBUG # debuging macros turn on spec regime for libstdc++
                 -D_GLIBCXX_DEBUG_PEDANTIC # debuging macros turn on spec regime for libstdc++
                 )
@@ -59,15 +50,11 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
         target_link_options(${PROJECT_NAME} PRIVATE
                 -fsanitize=address
                 -fsanitize=undefined
-                #-fsanitize=leak
                 )
 endif()
 
+if (APPLE)
+        target_link_libraries(${PROJECT_NAME} "-framework cocoa")
+endif (APPLE)
 
-if(CMAKE_SYSTEM_NAME MATCHES "^MINGW")
-    set(SYSTEM_LIBS -lstdc++)
-else()
-    set(SYSTEM_LIBS)
-endif()
-
-target_link_libraries(${PROJECT_NAME} Threads::Threads ${SYSTEM_LIBS})
+target_link_libraries(${PROJECT_NAME} Threads::Threads fltk ${OPENGL_LIBRARIES})
