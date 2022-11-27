@@ -1,27 +1,43 @@
 #include <iostream>
-//#include <stdio.h>
-//#include <stdlib.h>
 #include <string>
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
+#include <FL/Fl_Box.H>
 #include <FL/Fl_Button.H>
+#include <FL/Fl_Radio_Round_Button.H>
+#include <FL/Fl_Check_Button.H>
 
 using namespace std;
 
 enum {
-    spacing = 5,
-    button_width = 200,
-    button_heigh = 40,
-    font_size = 20
+    spacing = 2,
+    button_w = 150,
+    button_h = 40,
+    option_w = 120,
+    option_h = 20,
+    letter_size = 90
 };
 
-static const char* msg[] = {
-    "Say hello", "Say goodbye", "Quit"
+struct controls {
+    Fl_Radio_Round_Button* radio_buttons[3];
+    Fl_Check_Button* check_button;
+    Fl_Box* box;
 };
 
-static void say_callback(Fl_Widget*, void* user)
+static const int colors[] = {FL_RED, FL_GREEN, FL_BLUE};
+static const char* const colnames[] = {"red", "green", "blue"};
+
+static void set_callback(Fl_Widget *w, void *user)
 {
-    cout << string(static_cast<const char*>(user)) << endl;
+    controls *c = (controls*)user;
+    int i;
+    for(i = 0; i < 3; i++) {
+        if(c->radio_buttons[i]->value()) {
+            c->box->color(colors[i]);
+            break;
+        }
+    }
+    c->box->label(c->check_button->value() ? "A" : "");
 }
 
 static void exit_callback(Fl_Widget* widget, void*)
@@ -37,34 +53,41 @@ static void exit_callback(Fl_Widget* widget, void*)
     widget->hide();
 }
 
-
-
-int main(int argc, char **argv)
+int main()
 {
-    int window_width = button_width + spacing * 2;
-    int window_height = button_heigh * 3 + spacing * 4;
-    Fl_Window* window = new Fl_Window(window_width, window_height, "Buttons demo");
+    int win_w = button_w * 2 + spacing * 3;
+    int win_h = option_h * 4 + button_h + spacing * 7;
+    Fl_Window *win = new Fl_Window(win_w, win_h, "buttons demo");
 
-    Fl_Button* buttons[3];
+    controls *ctrl = new controls;
 
-    int i = 0;
-    int y = spacing;
-    for (i = 0; i < 3; ++i) {
-        buttons[i] = new Fl_Button(spacing, y, button_width, button_heigh, msg[i]);
-        buttons[i]->labelsize(font_size);
-        y += button_heigh + spacing;
+    for(int i = 0; i < 3; ++i) {
+        int y = spacing * (i + 1) + option_h * i;
+        ctrl->radio_buttons[i] = new Fl_Radio_Round_Button(spacing, y,
+                            option_w, option_h, colnames[i]);
     }
-    window->end();
+    ctrl->check_button = new Fl_Check_Button(spacing, 5*spacing + 3*option_h,
+                                   option_w, option_h, "show letter");
 
-    buttons[0]->callback(say_callback, (void*)"Hello, World!");
-    buttons[1]->callback(say_callback, (void*)"Goodbay, World!");
-    buttons[2]->callback(exit_callback, 0);
+    int box_x = 2 * spacing + option_w;
+    int box_w = 2 * button_w + spacing - option_w - spacing;
+    int box_h = 4 * option_h + 4 * spacing;
+    ctrl->box = new Fl_Box(box_x, spacing, box_w, box_h);
+    ctrl->box->labelsize(letter_size);
+    ctrl->box->labelcolor(FL_WHITE);
+    ctrl->box->box(FL_FLAT_BOX);
 
-    window->show();
+    int buttons_y = 6 * spacing + 4 * option_h;
+    Fl_Button *set_b =
+        new Fl_Button(spacing, buttons_y, button_w, button_h, "Set!");
+    set_b->callback(set_callback, (void*)ctrl);
 
-    return Fl::run();  
-    /*for (int i = 0; i < sizeof(buttons); ++i) {
-        delete buttons[i];
-        buttons[i] = nullptr;
-    }*/
-} 
+    Fl_Button *close_b =
+        new Fl_Button(2 * spacing + button_w,
+                      buttons_y, button_w, button_h, "Quit");
+    close_b->callback(exit_callback, 0);
+
+    win->end();
+    win->show();
+    return Fl::run();
+}
